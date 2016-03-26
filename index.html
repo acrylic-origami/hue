@@ -1,0 +1,107 @@
+<html>
+	<head>
+		<style type="text/css">
+		html, body {
+			height:100%;
+			width:100%;
+			margin:0;
+			font-family:Source Code Pro, monospace;
+			color:#412B4F;
+		}
+		*, *:before, *:after {
+			-webkit-box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			-o-box-sizing: border-box;
+			box-sizing: border-box;
+		}
+		span {
+			position:inline-block;
+		}
+		textarea, input {
+			outline: none;
+			border:none;
+		}
+		textarea {
+			width:100%;
+			height:100%;
+			color:#412B4F;
+			font-family:Source Code Pro, monospace;
+		}
+		span.button {
+			background-color:#ED3764;
+			color:#FFF;
+			font-weight:bold;
+			padding:10px;
+			position:absolute;
+			bottom:0;
+			right:0;
+			cursor:pointer;
+		}
+		span.button:hover {
+			background-color:#DB3760;
+		}
+		#grid_container {
+			height:100%; 
+			width:100%; 
+			display:table;
+		}
+		#grid_container > div, #grid_container > span {
+			display:table-cell;
+			position:relative;
+			vertical-align:top;
+		}
+		</style>
+		<script type="text/javascript" src="js/vendor/require.js"></script>
+		<script type="text/javascript">
+			require.config({
+				'baseUrl': 'js/vendor',
+				'paths': {
+					'app': '../../js/app'
+				},
+				'shim': {
+					'color': { 'exports': 'net.brehaut.Color' }
+				}
+			});
+			require(['jquery', 'lodash.min', 'color', 'app/reround', 'domReady.min!'], function($, _, Color) {
+				$('#render_button').click(function(e) {
+					$('#apron').html('');
+					// console.log($('#list').val().split(/(\n\r|\r\n|\n|\r)/));
+					var luminances = _.map($('#list').val().split(/(?:\r?\n)/), function(maybe_color) {
+						$color_bar = $('<div></div>');
+						$color_bar.css('color', maybe_color).css('background-color', '#FFF').css('background-color', maybe_color);
+						if($color_bar.css('color') === $color_bar.css('background-color')) {
+							var C = Color($color_bar.css('background-color'));
+							var lum = C.getLuminance();
+							$color_bar.html(maybe_color + " &mdash; lum: " + Math.round10(lum, -2));
+							$color_bar.css('color', lum>0.5 ? "#412B4F" : "#FFF" );
+							return [C.getLuminance(), $color_bar];
+						}
+						else {
+							$color_bar.css('background-color', 'none').css('color', '#ED3764');
+							$color_bar.html(maybe_color + ' not valid!');
+							return [null, $color_bar];
+						}
+					});
+					luminances.sort(function(a, b) {
+						return a[0] === null ? 1 : (a[0] > b[0])*2-1;
+					});
+					_.each(luminances, function(lum) {
+						$('#apron').append(lum[1]);
+					})
+				})
+			});
+		</script>
+	</head>
+	
+	<body>
+		<div id="grid_container">
+			<div style="width:50%;">
+				<span class="button" id="render_button">RENDER!</span>
+				<textarea id="list"></textarea>
+			</div><!--
+		--><div style="width:50%; height:100%;" id="personal_rainbow">
+				<div id="apron" style="overflow-y:scroll; height:100%;"></div>
+			</div>
+		</div>
+	</body>
+</html>
